@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Models\Driver;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
+class DriverAuthController extends Controller
+{
+    public function showLoginForm()
+    {
+        return view('auth.driver_login');
+    }
+
+    public function login(Request $request)
+    {
+        $driver = Driver::where('email', $request->email)->first();
+
+        if ($driver && Hash::check($request->password, $driver->password)) {
+            Auth::guard('web')->login($driver);
+            return redirect()->route('dashboard');
+        }
+
+        return back()->withErrors(['email' => 'Invalid credentials']);
+    }
+
+    public function showRegisterForm()
+    {
+        return view('auth.driver_register');
+    }
+
+    public function register(Request $request)
+    {
+        Driver::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->route('driver.login');
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        return redirect()->route('driver.login');
+    }
+}
